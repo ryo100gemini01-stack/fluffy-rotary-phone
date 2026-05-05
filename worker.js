@@ -9,6 +9,7 @@ export default {
     const min = url.searchParams.get("min") || "10000"
     const sort = url.searchParams.get("sort") || "-viewCounter"
     const offset = url.searchParams.get("offset") || "0"
+const date = url.searchParams.get("date")
 
     if (!query) {
       return new Response(JSON.stringify({
@@ -19,18 +20,41 @@ export default {
       })
     }
 
+const now = Date.now()
+
+let dateFilterParam = {}
+
+if (date === "1") {
+  dateFilterParam = {
+    "filters[startTime][gte]": new Date(now - 86400 * 1000).toISOString()
+  }
+}
+
+if (date === "7") {
+  dateFilterParam = {
+    "filters[startTime][gte]": new Date(now - 7 * 86400 * 1000).toISOString()
+  }
+}
+
+if (date === "30") {
+  dateFilterParam = {
+    "filters[startTime][gte]": new Date(now - 30 * 86400 * 1000).toISOString()
+  }
+}
+
     const apiUrl = "https://snapshot.search.nicovideo.jp/api/v2/snapshot/video/contents/search"
 
-    const params = new URLSearchParams({
-      q: query,
-      targets: "title",
-      fields: "contentId,title,viewCounter,thumbnailUrl",
-      "filters[viewCounter][gte]": min,
-      "_sort": sort,
-      "_offset": offset,
-      "_limit": limit,
-      "_context": "apiguide"
-    })
+  const params = new URLSearchParams({
+  q: query,
+  targets: "title",
+  fields: "contentId,title,viewCounter,thumbnailUrl,startTime",
+  "filters[viewCounter][gte]": min,
+  "_sort": sort,
+  "_offset": offset,
+  "_limit": limit,
+  "_context": "apiguide",
+  ...dateFilterParam
+})
 
     try {
       const res = await fetch(`${apiUrl}?${params.toString()}`, {
