@@ -1,7 +1,14 @@
 export default {
   async fetch(request) {
     const url = new URL(request.url)
+
     const query = url.searchParams.get("q")
+
+    // 追加パラメータ（デフォルト付き）
+    const limit = url.searchParams.get("limit") || "3"
+    const min = url.searchParams.get("min") || "10000"
+    const sort = url.searchParams.get("sort") || "-viewCounter"
+    const offset = url.searchParams.get("offset") || "0"
 
     if (!query) {
       return new Response(JSON.stringify({
@@ -17,12 +24,11 @@ export default {
     const params = new URLSearchParams({
       q: query,
       targets: "title",
-      // ✅ サムネ追加ここが重要
       fields: "contentId,title,viewCounter,thumbnailUrl",
-      "filters[viewCounter][gte]": "10000",
-      "_sort": "-viewCounter",
-      "_offset": "0",
-      "_limit": "3",
+      "filters[viewCounter][gte]": min,
+      "_sort": sort,
+      "_offset": offset,
+      "_limit": limit,
       "_context": "apiguide"
     })
 
@@ -49,7 +55,6 @@ export default {
 
       const data = await res.json()
 
-      // 再生数フォーマット（万）
       const formatViews = (n) => {
         if (n >= 10000) {
           return (n / 10000).toFixed(1).replace(/\.0$/, "") + "万"
@@ -61,7 +66,7 @@ export default {
         id: v.contentId,
         title: v.title,
         views: formatViews(v.viewCounter),
-        thumbnail: v.thumbnailUrl, // ✅ ここで生きる
+        thumbnail: v.thumbnailUrl,
         url: `https://www.nicovideo.jp/watch/${v.contentId}`
       }))
 
