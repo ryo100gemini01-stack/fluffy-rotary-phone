@@ -2,55 +2,59 @@ export default {
   async fetch(request) {
     const url = new URL(request.url)
 
-    const query = url.searchParams.get("q") || ""
+    const query = url.searchParams.get("q")
 
     // 追加パラメータ（デフォルト付き）
     const limit = url.searchParams.get("limit") || "3"
     const min = url.searchParams.get("min") || "10000"
     const sort = url.searchParams.get("sort") || "-viewCounter"
     const offset = url.searchParams.get("offset") || "0"
-    const date = url.searchParams.get("date")
+const date = url.searchParams.get("date")
 
-    // ⭐ キーワードなし許可（ランキングモード）
-    const isRankingMode = query.trim() === ""
+    if (!query) {
+      return new Response(JSON.stringify({
+        status: "error",
+        message: "検索ワードが空です"
+      }), {
+        headers: { "Content-Type": "application/json" }
+      })
+    }
+
+const now = Date.now()
+
+let dateFilterParam = {}
+
+if (date === "1") {
+  dateFilterParam = {
+    "filters[startTime][gte]": new Date(now - 86400 * 1000).toISOString()
+  }
+}
+
+if (date === "7") {
+  dateFilterParam = {
+    "filters[startTime][gte]": new Date(now - 7 * 86400 * 1000).toISOString()
+  }
+}
+
+if (date === "30") {
+  dateFilterParam = {
+    "filters[startTime][gte]": new Date(now - 30 * 86400 * 1000).toISOString()
+  }
+}
 
     const apiUrl = "https://snapshot.search.nicovideo.jp/api/v2/snapshot/video/contents/search"
 
-    const now = Date.now()
-
-    let dateFilterParam = {}
-
-    if (date === "1") {
-      dateFilterParam = {
-        "filters[startTime][gte]": new Date(now - 86400 * 1000).toISOString()
-      }
-    }
-
-    if (date === "7") {
-      dateFilterParam = {
-        "filters[startTime][gte]": new Date(now - 7 * 86400 * 1000).toISOString()
-      }
-    }
-
-    if (date === "30") {
-      dateFilterParam = {
-        "filters[startTime][gte]": new Date(now - 30 * 86400 * 1000).toISOString()
-      }
-    }
-
-    const params = new URLSearchParams({
-      // ⭐ 空ならランキング的動作になる
-      q: query,
-
-      targets: "title,tags",
-      fields: "contentId,title,viewCounter,thumbnailUrl,startTime",
-      "filters[viewCounter][gte]": min,
-      "_sort": sort,
-      "_offset": offset,
-      "_limit": limit,
-      "_context": "apiguide",
-      ...dateFilterParam
-    })
+  const params = new URLSearchParams({
+  q: query,
+  targets: "title",
+  fields: "contentId,title,viewCounter,thumbnailUrl,startTime",
+  "filters[viewCounter][gte]": min,
+  "_sort": sort,
+  "_offset": offset,
+  "_limit": limit,
+  "_context": "apiguide",
+  ...dateFilterParam
+})
 
     try {
       const res = await fetch(`${apiUrl}?${params.toString()}`, {
@@ -92,7 +96,6 @@ export default {
 
       return new Response(JSON.stringify({
         status: "ok",
-        mode: isRankingMode ? "ranking" : "search",
         count: formatted.length,
         results: formatted
       }), {
