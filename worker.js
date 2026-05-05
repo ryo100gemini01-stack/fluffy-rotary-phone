@@ -26,34 +26,30 @@ export default {
     })
 
     try {
-    const res = await fetch(`${apiUrl}?${params.toString()}`, {
-  headers: {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Accept": "application/json, text/plain, */*",
-    "Accept-Language": "ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7",
-    "Referer": "https://www.nicovideo.jp/",
-    "Origin": "https://www.nicovideo.jp"
-  }
-})
+      const res = await fetch(`${apiUrl}?${params.toString()}`, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+          "Accept": "application/json, text/plain, */*",
+          "Accept-Language": "ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7",
+          "Referer": "https://www.nicovideo.jp/",
+          "Origin": "https://www.nicovideo.jp"
+        }
+      })
 
-      const text = await res.text()
-
-      // JSONかチェック
-      if (!text.startsWith("{")) {
+      if (!res.ok) {
         return new Response(JSON.stringify({
           status: "error",
-          message: "ニコニコAPIがJSONを返していません",
-          raw: text.slice(0, 200)
+          message: `HTTPエラー: ${res.status}`
         }), {
           headers: { "Content-Type": "application/json" },
-          status: 500
+          status: res.status
         })
       }
 
-      const data = JSON.parse(text)
+      const data = await res.json()
 
       return new Response(JSON.stringify(data), {
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json; charset=UTF-8" }
       })
 
     } catch (e) {
