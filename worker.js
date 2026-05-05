@@ -47,6 +47,19 @@ export default {
       }
 
       const data = await res.json()
+      
+const formatted = data.data.map(v => ({
+
+  id: v.contentId,
+
+  title: v.title,
+
+  views: v.viewCounter,
+
+  url: `https://www.nicovideo.jp/watch/${v.contentId}`
+
+}))
+
 
       return new Response(JSON.stringify(data), {
         headers: { "Content-Type": "application/json; charset=UTF-8" }
