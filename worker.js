@@ -46,7 +46,7 @@ if (date === "30") {
 
   const params = new URLSearchParams({
   q: query,
-  targets: "title",
+  targets: "title,tags",
   fields: "contentId,title,viewCounter,thumbnailUrl,startTime",
   "filters[viewCounter][gte]": min,
   "_sort": sort,
