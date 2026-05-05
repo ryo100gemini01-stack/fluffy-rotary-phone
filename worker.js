@@ -17,7 +17,8 @@ export default {
     const params = new URLSearchParams({
       q: query,
       targets: "title",
-      fields: "contentId,title,viewCounter",
+      // ✅ サムネ追加ここが重要
+      fields: "contentId,title,viewCounter,thumbnailUrl",
       "filters[viewCounter][gte]": "10000",
       "_sort": "-viewCounter",
       "_offset": "0",
@@ -46,29 +47,31 @@ export default {
         })
       }
 
-   const data = await res.json()
+      const data = await res.json()
 
-const formatViews = (n) => {
-  if (n >= 10000) {
-    return (n / 10000).toFixed(1).replace(/\.0$/, "") + "万"
-  }
-  return n.toString()
-}
-const formatted = data.data.map(v => ({
-  id: v.contentId,
-  title: v.title,
-  views: formatViews(v.viewCounter),
-  thumbnail: v.thumbnailUrl,
-  url: `https://www.nicovideo.jp/watch/${v.contentId}`
-}))
+      // 再生数フォーマット（万）
+      const formatViews = (n) => {
+        if (n >= 10000) {
+          return (n / 10000).toFixed(1).replace(/\.0$/, "") + "万"
+        }
+        return n.toString()
+      }
 
-return new Response(JSON.stringify({
-  status: "ok",
-  count: formatted.length,
-  results: formatted
-}), {
-  headers: { "Content-Type": "application/json; charset=UTF-8" }
-})
+      const formatted = data.data.map(v => ({
+        id: v.contentId,
+        title: v.title,
+        views: formatViews(v.viewCounter),
+        thumbnail: v.thumbnailUrl, // ✅ ここで生きる
+        url: `https://www.nicovideo.jp/watch/${v.contentId}`
+      }))
+
+      return new Response(JSON.stringify({
+        status: "ok",
+        count: formatted.length,
+        results: formatted
+      }), {
+        headers: { "Content-Type": "application/json; charset=UTF-8" }
+      })
 
     } catch (e) {
       return new Response(JSON.stringify({
