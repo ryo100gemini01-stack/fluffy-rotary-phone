@@ -47,7 +47,7 @@ if (date === "30") {
   const params = new URLSearchParams({
   q: query,
   targets: "title,tags",
-  fields: "contentId,title,viewCounter,thumbnailUrl,startTime",
+  fields: "contentId,title,viewCounter,thumbnailUrl,startTime,lengthSeconds",
   "filters[viewCounter][gte]": min,
   "_sort": sort,
   "_offset": offset,
@@ -86,13 +86,20 @@ if (date === "30") {
         return n.toString()
       }
 
-      const formatted = data.data.map(v => ({
-        id: v.contentId,
-        title: v.title,
-        views: formatViews(v.viewCounter),
-        thumbnail: v.thumbnailUrl,
-        url: `https://www.nicovideo.jp/watch/${v.contentId}`
-      }))
+const formatTime = (sec) => {
+  const m = Math.floor(sec / 60)
+  const s = sec % 60
+  return `${m}:${s.toString().padStart(2, "0")}`
+}
+
+const formatted = data.data.map(v => ({
+  id: v.contentId,
+  title: v.title,
+  views: formatViews(v.viewCounter),
+  thumbnail: v.thumbnailUrl,
+  url: `https://www.nicovideo.jp/watch/${v.contentId}`,
+  duration: v.lengthSeconds ? formatTime(v.lengthSeconds) : ""
+}))
 
       return new Response(JSON.stringify({
         status: "ok",
