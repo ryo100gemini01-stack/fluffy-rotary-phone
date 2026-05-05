@@ -46,17 +46,25 @@ export default {
         })
       }
 
-      const data = await res.json()
+   const data = await res.json()
 
+const formatViews = (n) => {
+  if (n >= 10000) {
+    return (n / 10000).toFixed(1).replace(/\.0$/, "") + "万"
+  }
+  return n.toString()
+}
 const formatted = data.data.map(v => ({
   id: v.contentId,
   title: v.title,
-  views: v.viewCounter,
+  views: formatViews(v.viewCounter),
+  thumbnail: v.thumbnailUrl,
   url: `https://www.nicovideo.jp/watch/${v.contentId}`
 }))
 
 return new Response(JSON.stringify({
   status: "ok",
+  count: formatted.length,
   results: formatted
 }), {
   headers: { "Content-Type": "application/json; charset=UTF-8" }
